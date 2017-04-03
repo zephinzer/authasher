@@ -7,6 +7,42 @@ var DEFAULT_ALGORITHM = 'aes192',
 		DEFAULT_OUTPUT_ENCODING = 'hex',
 		DEFAULT_KEY_LENGTH = 32;
 
+function generateDefaultOptions(options) {
+	return {
+		algorithm: options.algorithm || DEFAULT_ALGORITHM,
+		hashingFunction: options.hashing || DEFAULT_HASHING,
+		inputEncoding: options.inputEncoding || DEFAULT_INPUT_ENCODING,
+		iterations: options.iterations || DEFAULT_ITERATIONS,
+		outputEncoding: options.outputEncoding || DEFAULT_OUTPUT_ENCODING,
+		keyLength: options.keyLength || DEFAULT_KEY_LENGTH
+	}
+};
+
+function generateCorruptedReturnObject() {
+	return {
+		valid: false,
+		expired: false,
+		corrupt: true
+	};
+}
+
+function getPasswordSections(storedKeyWrapper) {
+	var passwordSections = storedKeyWrapper.split('@');
+	if(passwordSections.length !== 2) {
+		throw EvalError();
+	} else {
+		return passwordSections;
+	}
+}
+
+function getLengthSegments(lengthSegment) {
+	var lengthSegments = lengthSegment.split('.');
+	if(lengthSegments.length !== 4) {
+		throw EvalError();
+	} else {
+		return lengthSegments;
+	}
+}
 
 module.exports = {
 	DEFAULT: {
@@ -18,15 +54,7 @@ module.exports = {
 		KEY_LENGTH: DEFAULT_KEY_LENGTH
 	},
 	create: function(password, _options) {
-		_options = _options || {};
-		var options = {
-			algorithm: _options.algorithm || DEFAULT_ALGORITHM,
-			hashingFunction: DEFAULT_HASHING,
-			inputEncoding: _options.inputEncoding || DEFAULT_INPUT_ENCODING,
-			iterations: _options.iterations || DEFAULT_ITERATIONS,
-			outputEncoding: _options.outputEncoding || DEFAULT_OUTPUT_ENCODING,
-			keyLength: _options.keyLength || DEFAULT_KEY_LENGTH
-		};
+		var options = generateDefaultOptions(_options || {});
 		var salt = crypto.randomBytes(options.keyLength).toString(options.outputEncoding);
 		var saltedHash = crypto.pbkdf2Sync(
 			password, salt, options.iterations, options.keyLength, options.hashingFunction
@@ -41,36 +69,23 @@ module.exports = {
 		return `${salt}${saltedHash}${date}@${random}.${salt.length}.${saltedHash.length}.${date.length}`;
 	},
 	validate: function(challengeKey, storedKeyWrapper, _options) {
-		_options = _options || {};
-		var options = {
-			algorithm: _options.algorithm || DEFAULT_ALGORITHM,
-			hashingFunction: DEFAULT_HASHING,
-			inputEncoding: _options.inputEncoding || DEFAULT_INPUT_ENCODING,
-			iterations: _options.iterations || DEFAULT_ITERATIONS,
-			keyLength: _options.keyLength || DEFAULT_KEY_LENGTH,
-			outputEncoding: _options.outputEncoding || DEFAULT_OUTPUT_ENCODING,
-			timeValidity: _options.timeValidity
-		};
+		var options = generateDefaultOptions(_options || {});
+		options.timeValidity = options.timeValidity;
 
-		var valid, expired, corrupt = null;
-		var passwordSections = storedKeyWrapper.split('@');
-		if(passwordSections.length !== 2) {
-			valid = false;
-			corrupt = true;
-			return { valid, expired, corrupt };
-		}
-
-		var hashSegments = passwordSections[0];
-		var lengthSegments = passwordSections[1].split('.');
-		if(lengthSegments.length !== 4) {
-			valid = false;
-			corrupt = true;
-			return { valid, expired, corrupt };
+		var passwordSections;
+		var lengthSegments;
+		try {
+			passwordSections = getPasswordSections(storedKeyWrapper);
+			lengthSegments = getLengthSegments(passwordSections[1]);
+		} catch(ex) {
+			return generateCorruptedReturnObject();
 		}
 
 		var saltLength = lengthSegments[1] - 0;
 		var hashLength = lengthSegments[2] - 0;
 		var dateLength = lengthSegments[3] - 0;
+
+		var hashSegments = passwordSections[0];
 		var saltAndSaltedHash = hashSegments.slice(0, saltLength + hashLength);
 		var storedSalt, storedHash, storedDate;
 		try {
@@ -78,20 +93,16 @@ module.exports = {
 			storedHash = hashSegments.slice(saltLength, saltLength + hashLength);
 			storedDate = hashSegments.slice(saltLength + hashLength, saltLength + hashLength + dateLength);
 		} catch(ex) {
-			valid = false;
-			corrupt = true;
-			return { valid, expired, corrupt };
+			return generateCorruptedReturnObject();
 		}
 
-		var dateDecipher, storedTime, timeNow;
+		var dateDecipher, storedTime;
 		try {
 			dateDecipher =  crypto.createDecipher(options.algorithm, saltAndSaltedHash);
 			storedTime = dateDecipher.update(storedDate, options.outputEncoding, options.inputEncoding);
 			storedTime = (storedTime + dateDecipher.final(options.inputEncoding)).replace(/\//gi,'');
 		} catch(ex) {
-			valid = false;
-			corrupt = true;
-			return { valid, expired, corrupt };
+			return generateCorruptedReturnObject();
 		}
 		
 		var challengeHash = crypto.pbkdf2Sync(
