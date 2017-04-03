@@ -94,3 +94,7 @@ Or run the analogous command to install it with Yarn:
 ### Testing
 Tests are written with the `mocha` testing framework and the `chai` assertion library.
 
+## Changelog
+
+- Version 1.0.0
+  - Initial release
