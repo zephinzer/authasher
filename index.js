@@ -44,7 +44,7 @@ module.exports = {
 		}
 		
 		var challengeHash = utility.generatedSaltedHash(
-			password, salt, options.iterations, options.keyLength, options.hashingFunction, options.outputEncoding
+			challengeKey, storedSalt, options.iterations, options.keyLength, options.hashingFunction, options.outputEncoding
 		);
 		valid = (challengeHash === storedHash);
 		expired = (
