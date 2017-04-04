@@ -7,9 +7,9 @@ module.exports = {
 	create: function(password, _options) {
 		var options = utility.generateDefaultOptions(_options || {});
 		var salt = crypto.randomBytes(options.keyLength).toString(options.outputEncoding);
-		var saltedHash = crypto.pbkdf2Sync(
-			password, salt, options.iterations, options.keyLength, options.hashingFunction
-		).toString(options.outputEncoding);
+		var saltedHash = utility.generatedSaltedHash(
+			password, salt, options.iterations, options.keyLength, options.hashingFunction, options.outputEncoding
+		);
 		var saltAndSaltedHash = salt.concat(saltedHash);
 		var dateCipher = crypto.createCipher(options.algorithm, saltAndSaltedHash);
 		var timeString = (new Date()).getTime().toString();
@@ -43,9 +43,9 @@ module.exports = {
 			return utility.generateCorruptedReturnObject();
 		}
 		
-		var challengeHash = crypto.pbkdf2Sync(
-			challengeKey, storedSalt, options.iterations, options.keyLength, options.hashingFunction
-		).toString(options.outputEncoding);
+		var challengeHash = utility.generatedSaltedHash(
+			password, salt, options.iterations, options.keyLength, options.hashingFunction, options.outputEncoding
+		);
 		valid = (challengeHash === storedHash);
 		expired = (
 				(options.timeValidity === null) || (typeof options.timeValidity === 'undefined')

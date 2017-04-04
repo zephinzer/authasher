@@ -1,6 +1,15 @@
+var crypto = require('crypto');
 var DEFAULT = require('./default');
 
 module.exports = {
+	generateCorruptedReturnObject: function() {
+		return {
+			valid: false,
+			expired: false,
+			corrupt: true
+		};
+	},
+
 	generateDefaultOptions: function(options) {
 		return {
 			algorithm: options.algorithm || DEFAULT.ALGORITHM,
@@ -12,12 +21,10 @@ module.exports = {
 		}
 	},
 
-	generateCorruptedReturnObject: function() {
-		return {
-			valid: false,
-			expired: false,
-			corrupt: true
-		};
+	generatedSaltedHash: function(password, salt, iterations, keyLength, hashingFunction, outputEncoding) {
+		return crypto.pbkdf2Sync(
+			password, salt, iterations, keyLength, hashingFunction
+		).toString(outputEncoding);
 	},
 
 	getSegments: function(segmentedBlock, delimiter, correctLength) {
