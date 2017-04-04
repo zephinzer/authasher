@@ -2,19 +2,8 @@ var chai = require('chai');
 var expect = chai.expect;
 var authasher = require('../index');
 
-describe('authentication-hashing', function() {
+describe('authasher', function() {
 	var password = 'p@ssw0rd';
-
-	context('default options', function() {
-		it('is correct', function() {
-			expect(authasher.DEFAULT.ALGORITHM).to.eq('aes192');
-			expect(authasher.DEFAULT.INPUT_ENCODING).to.eq('utf8');
-			expect(authasher.DEFAULT.ITERATIONS).to.eq(8192);
-			expect(authasher.DEFAULT.HASHING).to.eq('sha512');
-			expect(authasher.DEFAULT.KEY_LENGTH).to.eq(32);
-			expect(authasher.DEFAULT.OUTPUT_ENCODING).to.eq('hex');
-		});
-	});
 
 	context('hash creation', function() {
 		it('can create a hash', function() {

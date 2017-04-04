@@ -10,7 +10,8 @@ module.exports = {
 		};
 	},
 
-	generateDefaultOptions: function(options) {
+	generateDefaultOptions: function(_options) {
+		var options = _options || {};
 		return {
 			algorithm: options.algorithm || DEFAULT.ALGORITHM,
 			hashingFunction: options.hashing || DEFAULT.HASHING,

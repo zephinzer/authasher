@@ -17,7 +17,7 @@ module.exports = {
 		var date = dateCipher.update(timeString, options.inputEncoding, options.outputEncoding);
 		date += dateCipher.final(options.outputEncoding);
 		var random = Math.floor(Math.random() * 255);
-		return `${salt}${saltedHash}${date}@${random}.${salt.length}.${saltedHash.length}.${date.length}`;
+		return salt + saltedHash + date + '@' + random + '.' + salt.length + '.' + saltedHash.length + '.' + date.length;
 	},
 	validate: function(challengeKey, storedKeyWrapper, _options) {
 		var options = utility.generateDefaultOptions(_options || {});
@@ -46,11 +46,11 @@ module.exports = {
 		var challengeHash = utility.generatedSaltedHash(
 			challengeKey, storedSalt, options.iterations, options.keyLength, options.hashingFunction, options.outputEncoding
 		);
-		valid = (challengeHash === storedHash);
-		expired = (
-				(options.timeValidity === null) || (typeof options.timeValidity === 'undefined')
-			) ? false : ((new Date()).getTime() - storedtime < options.timeValidity)
-		corrupt = false;
-		return { valid, expired, corrupt };
+		return {
+			valid: 		(challengeHash === storedHash),
+			expired: 	((options.timeValidity === null) || (typeof options.timeValidity === 'undefined'))
+				? false : ((new Date()).getTime() - storedtime < options.timeValidity),
+			corrupt: false
+		}
 	}
 };
