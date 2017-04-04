@@ -1,4 +1,5 @@
-var { expect } = require('chai');
+var chai = require('chai');
+var expect = chai.expect;
 var authasher = require('../index');
 
 describe('authentication-hashing', function() {
