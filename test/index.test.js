@@ -13,8 +13,8 @@ describe('authasher', function() {
 		});
 
 		context('performance', function() {
-			it('creates a hash in less than 15ms with default settings', function(done) {
-				this.timeout(300);
+			it('creates a hash in less than 20ms with default settings', function(done) {
+				this.timeout(400);
 				for(var i = 0; i < 20; ++i) {
 					authasher.create(password);
 				}
@@ -45,8 +45,8 @@ describe('authasher', function() {
 		context('performance', function() {
 			var hashedToken = authasher.create(password);
 			
-			it('validates a hash in less than 15ms on average with default settings', function(done) {
-				this.timeout(300);
+			it('validates a hash in less than 20ms on average with default settings', function(done) {
+				this.timeout(400);
 				for(var i = 0; i < 20; ++i) {
 					authasher.validate(password, hashedToken);
 				}
