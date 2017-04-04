@@ -1,5 +1,8 @@
 # Authasher
 
+[![Code Climate](https://codeclimate.com/github/zephinzer/authasher/badges/gpa.svg)](https://codeclimate.com/github/zephinzer/authasher)
+
+
 ## Installation & Usage
 Install authasher with NPM 
 
