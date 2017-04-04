@@ -3,6 +3,9 @@
 [![Code Climate](https://codeclimate.com/github/zephinzer/authasher/badges/gpa.svg)](https://codeclimate.com/github/zephinzer/authasher)
 [![Build Status](https://travis-ci.org/zephinzer/authasher.svg?branch=master)](https://travis-ci.org/zephinzer/authasher)
 
+## Compatibility
+Authasher is tested to be compatible with the following versions of Node: `0.10.42`, `0.12.13`, `4`, `5`, `6`, `7`.
+
 ## Installation & Usage
 Install authasher with NPM 
 
