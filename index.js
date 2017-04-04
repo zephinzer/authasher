@@ -1,60 +1,11 @@
 var crypto = require('crypto');
-
-var DEFAULT_ALGORITHM = 'aes192',
-		DEFAULT_HASHING = 'sha512',
-		DEFAULT_INPUT_ENCODING = 'utf8',
-		DEFAULT_ITERATIONS = 8192,
-		DEFAULT_OUTPUT_ENCODING = 'hex',
-		DEFAULT_KEY_LENGTH = 32;
-
-function generateDefaultOptions(options) {
-	return {
-		algorithm: options.algorithm || DEFAULT_ALGORITHM,
-		hashingFunction: options.hashing || DEFAULT_HASHING,
-		inputEncoding: options.inputEncoding || DEFAULT_INPUT_ENCODING,
-		iterations: options.iterations || DEFAULT_ITERATIONS,
-		outputEncoding: options.outputEncoding || DEFAULT_OUTPUT_ENCODING,
-		keyLength: options.keyLength || DEFAULT_KEY_LENGTH
-	}
-};
-
-function generateCorruptedReturnObject() {
-	return {
-		valid: false,
-		expired: false,
-		corrupt: true
-	};
-}
-
-function getPasswordSections(storedKeyWrapper) {
-	var passwordSections = storedKeyWrapper.split('@');
-	if(passwordSections.length !== 2) {
-		throw EvalError();
-	} else {
-		return passwordSections;
-	}
-}
-
-function getLengthSegments(lengthSegment) {
-	var lengthSegments = lengthSegment.split('.');
-	if(lengthSegments.length !== 4) {
-		throw EvalError();
-	} else {
-		return lengthSegments;
-	}
-}
+var utility = require('./components/utility');
+var DEFAULT = require('./components/default');
 
 module.exports = {
-	DEFAULT: {
-		ALGORITHM: DEFAULT_ALGORITHM,
-		HASHING: DEFAULT_HASHING,
-		INPUT_ENCODING: DEFAULT_INPUT_ENCODING,
-		ITERATIONS: DEFAULT_ITERATIONS,
-		OUTPUT_ENCODING: DEFAULT_OUTPUT_ENCODING,
-		KEY_LENGTH: DEFAULT_KEY_LENGTH
-	},
+	DEFAULT: DEFAULT,
 	create: function(password, _options) {
-		var options = generateDefaultOptions(_options || {});
+		var options = utility.generateDefaultOptions(_options || {});
 		var salt = crypto.randomBytes(options.keyLength).toString(options.outputEncoding);
 		var saltedHash = crypto.pbkdf2Sync(
 			password, salt, options.iterations, options.keyLength, options.hashingFunction
@@ -69,40 +20,27 @@ module.exports = {
 		return `${salt}${saltedHash}${date}@${random}.${salt.length}.${saltedHash.length}.${date.length}`;
 	},
 	validate: function(challengeKey, storedKeyWrapper, _options) {
-		var options = generateDefaultOptions(_options || {});
+		var options = utility.generateDefaultOptions(_options || {});
 		options.timeValidity = options.timeValidity;
 
-		var passwordSections;
-		var lengthSegments;
+		var passwordSections, lengthSegments, saltLength, hashLength, dateLength, hashSegments, saltAndSaltedHash,
+				storedSalt, storedHash, storedDate, dateDecipher, storedTime;
 		try {
-			passwordSections = getPasswordSections(storedKeyWrapper);
-			lengthSegments = getLengthSegments(passwordSections[1]);
-		} catch(ex) {
-			return generateCorruptedReturnObject();
-		}
-
-		var saltLength = lengthSegments[1] - 0;
-		var hashLength = lengthSegments[2] - 0;
-		var dateLength = lengthSegments[3] - 0;
-
-		var hashSegments = passwordSections[0];
-		var saltAndSaltedHash = hashSegments.slice(0, saltLength + hashLength);
-		var storedSalt, storedHash, storedDate;
-		try {
+			passwordSections = utility.getPasswordSections(storedKeyWrapper);
+			lengthSegments = utility.getLengthSegments(passwordSections[1]);
+			saltLength = lengthSegments[1] - 0;
+			hashLength = lengthSegments[2] - 0;
+			dateLength = lengthSegments[3] - 0;
+			hashSegments = passwordSections[0];
+			saltAndSaltedHash = hashSegments.slice(0, saltLength + hashLength);
 			storedSalt = hashSegments.slice(0, saltLength);
 			storedHash = hashSegments.slice(saltLength, saltLength + hashLength);
 			storedDate = hashSegments.slice(saltLength + hashLength, saltLength + hashLength + dateLength);
-		} catch(ex) {
-			return generateCorruptedReturnObject();
-		}
-
-		var dateDecipher, storedTime;
-		try {
 			dateDecipher =  crypto.createDecipher(options.algorithm, saltAndSaltedHash);
 			storedTime = dateDecipher.update(storedDate, options.outputEncoding, options.inputEncoding);
 			storedTime = (storedTime + dateDecipher.final(options.inputEncoding)).replace(/\//gi,'');
 		} catch(ex) {
-			return generateCorruptedReturnObject();
+			return utility.generateCorruptedReturnObject();
 		}
 		
 		var challengeHash = crypto.pbkdf2Sync(

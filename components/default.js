@@ -1,0 +1,8 @@
+module.exports = {
+	ALGORITHM: 'aes192',
+	HASHING: 'sha512',
+	INPUT_ENCODING: 'utf8',
+	ITERATIONS: 8192,
+	OUTPUT_ENCODING: 'hex',
+	KEY_LENGTH: 32
+};
