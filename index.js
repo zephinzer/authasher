@@ -26,8 +26,8 @@ module.exports = {
 		var passwordSections, lengthSegments, saltLength, hashLength, dateLength, hashSegments, saltAndSaltedHash,
 				storedSalt, storedHash, storedDate, dateDecipher, storedTime;
 		try {
-			passwordSections = utility.getPasswordSections(storedKeyWrapper);
-			lengthSegments = utility.getLengthSegments(passwordSections[1]);
+			passwordSections = utility.getSegments(storedKeyWrapper, '@', 2);
+			lengthSegments = utility.getSegments(passwordSections[1], '.', 4);
 			saltLength = lengthSegments[1] - 0;
 			hashLength = lengthSegments[2] - 0;
 			dateLength = lengthSegments[3] - 0;

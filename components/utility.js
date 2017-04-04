@@ -20,21 +20,12 @@ module.exports = {
 		};
 	},
 
-	getPasswordSections: function(storedKeyWrapper) {
-		var passwordSections = storedKeyWrapper.split('@');
-		if(passwordSections.length !== 2) {
+	getSegments: function(segmentedBlock, delimiter, correctLength) {
+		var segments = segmentedBlock.split(delimiter);
+		if(segments.length !== correctLength) {
 			throw EvalError();
 		} else {
-			return passwordSections;
-		}
-	},
-
-	getLengthSegments: function(lengthSegment) {
-		var lengthSegments = lengthSegment.split('.');
-		if(lengthSegments.length !== 4) {
-			throw EvalError();
-		} else {
-			return lengthSegments;
+			return segments;
 		}
 	}
 };
